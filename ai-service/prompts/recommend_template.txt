@@ -1,0 +1,3 @@
+Based on this evidence, suggest 3 logical next steps for the investigation.
+Evidence: {input_data}
+Response format: JSON array of 3 objects, each with "action_type", "description", and "priority".
