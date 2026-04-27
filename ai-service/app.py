@@ -101,6 +101,40 @@ def recommend_actions():
         print(f"AI Service Error: {e}")
         return jsonify(get_fallback_data("recommend")), 200
 
+@app.route('/generate-report', methods=['POST'])
+@limiter.limit("30 per minute")
+def generate_report():
+    data = request.json
+    if not data or 'input_data' not in data:
+        return jsonify({"error": "Missing input_data"}), 400
+
+    try:
+        with open("prompts/report_template.txt", "r") as f:
+            template = f.read()
+        
+        prompt = template.replace("{input_data}", data['input_data'])
+
+        completion = client.chat.completions.create(
+            model=os.getenv("GROQ_MODEL"),
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5, # Balanced for reporting 
+            response_format={"type": "json_object"}
+        )
+
+        # Return the AI response
+        return completion.choices[0].message.content, 200, {'Content-Type': 'application/json'}
+    except Exception as e:
+        print(f"Report Error: {e}") # Check your terminal to see the actual error message
+        # Return a report-specific fallback
+        return jsonify({
+            "title": "Report Unavailable",
+            "summary": "AI service encountered an error.",
+            "overview": "Detailed report could not be generated.",
+            "key_items": [],
+            "recommendations": [],
+            "is_fallback": True
+        }), 200
+    
 if __name__ == '__main__':
     # AI Microservice runs on Port 5000 [cite: 12]
     app.run(port=5000)
