@@ -46,7 +46,7 @@ limiter = Limiter(
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 def get_fallback_data(task_type):
-    """Day 5/9: Provides safe JSON if the AI fails to prevent HTTP 500."""
+    """Day 5: Provides safe JSON if the AI fails to prevent HTTP 500."""
     now = datetime.datetime.now().isoformat()
     if task_type == "describe":
         return {
@@ -91,7 +91,7 @@ def describe_evidence():
         return jsonify({"error": "Missing input_data"}), 400
 
     try:
-        with open("ai-service/prompts/describe_template.txt", "r") as f:
+        with open("prompts/describe_template.txt", "r") as f:
             template = f.read()
         prompt = template.replace("{input_data}", data['input_data'])
         
@@ -109,7 +109,8 @@ def describe_evidence():
 
         ai_cache[prompt_hash] = completion.choices[0].message.content
         return ai_cache[prompt_hash], 200, {'Content-Type': 'application/json', 'X-Cache': 'MISS'}
-    except Exception:
+    except Exception as e:
+        print(f"Error: {e}")
         return jsonify(get_fallback_data("describe")), 200
 
 @app.route('/recommend', methods=['POST'])
@@ -121,7 +122,7 @@ def recommend_actions():
         return jsonify({"error": "Missing input_data"}), 400
 
     try:
-        with open("ai-service/prompts/recommend_template.txt", "r") as f:
+        with open("prompts/recommend_template.txt", "r") as f:
             template = f.read()
         prompt = template.replace("{input_data}", data['input_data'])
         
@@ -150,7 +151,7 @@ def generate_report():
         return jsonify({"error": "Missing input_data"}), 400
 
     try:
-        with open("ai-service/prompts/report_template.txt", "r") as f:
+        with open("prompts/report_template.txt", "r") as f:
             template = f.read()
         prompt = template.replace("{input_data}", data['input_data'])
         
